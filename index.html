@@ -69,7 +69,7 @@
 <form id="form">
 <main>
   <h1>Daily Nutrition Record</h1>
-  <p class="sub">Setiap kategori wajib memiliki minimal satu item. Ketuk “Tambah item” untuk menambah item lain.</p>
+  <p class="sub">Hanya nama dan tanggal yang wajib diisi. Item dan harga boleh dikosongkan; ketuk “Tambah item” untuk menambah item lain.</p>
 
   <fieldset>
     <legend>Informasi umum</legend>
@@ -110,8 +110,8 @@ document.getElementById("tanggal").valueAsDate = new Date();
 
 function itemRow(first) {
   return '<div class="item">' +
-    '<input class="iname" required enterkeyhint="next" autocomplete="off" placeholder="Nama item, mis. telur rebus" aria-label="Nama item">' +
-    '<div class="price"><span>Rp</span><input class="iprice" type="number" min="0" step="any" required inputmode="numeric" enterkeyhint="done" placeholder="0" aria-label="Harga"></div>' +
+    '<input class="iname" enterkeyhint="next" autocomplete="off" placeholder="Nama item, mis. telur rebus" aria-label="Nama item">' +
+    '<div class="price"><span>Rp</span><input class="iprice" type="number" min="0" step="any" inputmode="numeric" enterkeyhint="done" placeholder="0" aria-label="Harga"></div>' +
     (first ? '<span class="rm-space"></span>' : '<button type="button" class="rm" aria-label="Hapus item">&times;</button>') +
     '</div>';
 }
@@ -147,7 +147,8 @@ function collect() {
     return { name: m, el: fs, cats: CATS.map(function (c, j) {
       var cat = fs.querySelector('.cat[data-cat="' + j + '"]');
       var items = [].map.call(cat.querySelectorAll(".item"), function (it) {
-        return { name: it.querySelector(".iname").value.trim(), price: parseFloat(it.querySelector(".iprice").value) || 0 };
+        var raw = it.querySelector(".iprice").value;
+        return { name: it.querySelector(".iname").value.trim(), price: parseFloat(raw) || 0, hasPrice: raw !== "" };
       });
       return { name: c, items: items, el: cat, sum: items.reduce(function (s, x) { return s + x.price; }, 0) };
     }) };
@@ -201,12 +202,19 @@ form.addEventListener("submit", function (e) {
       doc.text(c.name, left + 3, y);
       y += 5.5;
       doc.setFont("helvetica", "normal"); doc.setFontSize(10.5);
-      c.items.forEach(function (it) {
-        var lines = doc.splitTextToSize(it.name, 115);
+      var filled = c.items.filter(function (it) { return it.name || it.hasPrice; });
+      if (!filled.length) {
+        doc.setTextColor(130);
+        doc.text("-", left + 10, y);
+        doc.setTextColor(0);
+        y += 6;
+      }
+      filled.forEach(function (it) {
+        var lines = doc.splitTextToSize(it.name || "(tanpa nama)", 115);
         room(lines.length * 5 + 2);
         doc.text("\u2022", left + 6, y);
         doc.text(lines, left + 10, y);
-        doc.text(rp(it.price), right - 2, y, { align: "right" });
+        doc.text(it.hasPrice ? rp(it.price) : "-", right - 2, y, { align: "right" });
         y += lines.length * 5 + 1;
       });
       y += 1.5;

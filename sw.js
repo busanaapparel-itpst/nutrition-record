@@ -1,4 +1,4 @@
-var CACHE = "nutrition-v4";
+var CACHE = "nutrition-v5";
 var SHELL = ["./", "./index.html", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 var PDF_LIB = "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
 
